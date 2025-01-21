@@ -17,17 +17,15 @@ Sistema de gestión de proyectos y tareas con capacidades en tiempo real. Permit
 - Base de datos: PostgreSQL
 - Comunicación en tiempo real: WebSocket + gRPC
 - Testing: Vitest + Testing Library
-- Contenedorización: Docker + Docker Compose
 
 ## Requisitos Previos
 - Node.js 20+
-- Docker y Docker Compose
-- PostgreSQL 15+ (solo para desarrollo local sin Docker)
+- PostgreSQL 15+
+- Google Cloud CLI (para despliegue en GCP)
 
 ## Instalación y Ejecución
 
 ### Desarrollo Local
-
 1. Clonar el repositorio
 ```bash
 git clone <repository-url>
@@ -50,33 +48,56 @@ cp .env.example .env
 npm run dev
 ```
 
-### Producción con Docker
+### Despliegue en Google Cloud
 
-1. Configurar variables de entorno
-```bash
-cp .env.example .env
-# Editar .env con las credenciales de producción
-```
-
-2. Construir e iniciar contenedores
-```bash
-docker-compose up -d
-```
-
-La aplicación estará disponible en http://localhost:5000
-
-### Producción con Google Cloud
-
-1. **Preparación**
+1. **Preparar el Entorno**
 ```bash
 # Instalar Google Cloud CLI
-gcloud components install docker-credential-gcr
-gcloud auth configure-docker
+curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-VERSION-linux-x86_64.tar.gz
+tar -xf google-cloud-cli-*.tar.gz
+./google-cloud-sdk/install.sh
+
+# Iniciar sesión en Google Cloud
+gcloud auth login
+
+# Configurar el proyecto
+gcloud config set project [PROJECT_ID]
+
+# Habilitar las APIs necesarias
+gcloud services enable \
+  cloudbuild.googleapis.com \
+  run.googleapis.com \
+  cloudscheduler.googleapis.com \
+  secretmanager.googleapis.com
 ```
 
-2. **Construir y Desplegar**
+2. **Configurar Base de Datos**
 ```bash
-# Construir imagen
+# Crear instancia de Cloud SQL (PostgreSQL)
+gcloud sql instances create maxillaris-db \
+  --database-version=POSTGRES_15 \
+  --tier=db-f1-micro \
+  --region=us-central1 \
+  --root-password=[YOUR_PASSWORD]
+
+# Crear base de datos
+gcloud sql databases create maxillaris \
+  --instance=maxillaris-db
+```
+
+3. **Configurar Secretos**
+```bash
+# Crear secretos para variables de entorno
+echo -n "[DATABASE_URL]" | \
+  gcloud secrets create DATABASE_URL --data-file=-
+
+echo -n "[JWT_SECRET]" | \
+  gcloud secrets create JWT_SECRET --data-file=-
+```
+
+4. **Desplegar la Aplicación**
+```bash
+# Construir y subir la imagen
 gcloud builds submit --tag gcr.io/[PROJECT_ID]/maxillaris
 
 # Desplegar en Cloud Run
@@ -84,16 +105,29 @@ gcloud run deploy maxillaris \
   --image gcr.io/[PROJECT_ID]/maxillaris \
   --platform managed \
   --region us-central1 \
-  --allow-unauthenticated
+  --allow-unauthenticated \
+  --set-secrets DATABASE_URL=DATABASE_URL:latest \
+  --set-secrets JWT_SECRET=JWT_SECRET:latest \
+  --set-env-vars "NODE_ENV=production"
 ```
 
-3. **Variables de Entorno**
-Configura las siguientes variables en Cloud Run:
-- `DATABASE_URL`: URL de conexión a Cloud SQL
-- `NODE_ENV`: "production"
+5. **Configurar Dominio (Opcional)**
+```bash
+# Mapear dominio personalizado
+gcloud run domain-mappings create \
+  --service maxillaris \
+  --domain [YOUR_DOMAIN] \
+  --region us-central1
+```
 
-Para más detalles sobre el despliegue, consulta la sección de Producción en `Presentacion.md`.
-
+6. **Verificar Despliegue**
+```bash
+# Obtener URL del servicio
+gcloud run services describe maxillaris \
+  --platform managed \
+  --region us-central1 \
+  --format 'value(status.url)'
+```
 
 ## Desarrollo
 
@@ -128,53 +162,6 @@ npm run test:coverage # Reporte de cobertura
 npm run build        # Construye para producción
 npm run start        # Inicia en modo producción
 ```
-
-## Decisiones Técnicas
-
-### Frontend
-- **React + TypeScript**: Tipado estático para mejor mantenibilidad
-- **Tailwind CSS**: Estilizado rápido y consistente
-- **Wouter**: Alternativa ligera a React Router
-- **TanStack Query**: Gestión de estado del servidor optimizada
-
-### Backend
-- **Express**: Framework web maduro y bien documentado
-- **WebSocket**: Actualizaciones en tiempo real
-- **gRPC**: Comunicación eficiente para estadísticas
-- **PostgreSQL**: Base de datos relacional con Drizzle ORM
-
-### Testing
-- **Vitest**: Framework de testing moderno
-- **Testing Library**: Pruebas centradas en el usuario
-- **Supertest**: Pruebas de integración para API
-
-## Posibles Mejoras Futuras
-
-### Funcionalidad
-- Sistema de notificaciones por email
-- Etiquetas y categorías para proyectos
-- Reportes y análisis avanzados
-- Integración con calendarios externos
-
-### Técnicas
-- Migración a microservicios
-- CI/CD automatizado
-- Monitoreo y logging centralizado
-- Mejora en cobertura de tests
-- Soporte offline con PWA
-
-### Seguridad
-- Autenticación 2FA
-- Rate limiting
-- Auditoría detallada
-- Backup automatizado
-
-## Contribución
-1. Crear un fork del repositorio
-2. Crear rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit de cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir Pull Request
 
 ## Licencia
 Distribuido bajo la Licencia MIT. Ver `LICENSE` para más información.

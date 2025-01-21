@@ -12,8 +12,9 @@ export function useWebSocket() {
       return; // Ya hay una conexión activa
     }
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    // Usar la misma URL base que la aplicación
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
 
     try {
       const ws = new WebSocket(wsUrl);

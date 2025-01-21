@@ -52,37 +52,107 @@ graph TB
    - Métricas en tiempo real
    - Comunicación eficiente entre servicios
 
+## Despliegue en Google Cloud
+
+### 1. Preparación del Entorno
+```bash
+# Iniciar sesión y configurar proyecto
+gcloud auth login
+gcloud config set project [PROJECT_ID]
+
+# Habilitar APIs necesarias
+gcloud services enable \
+  cloudbuild.googleapis.com \
+  run.googleapis.com \
+  cloudscheduler.googleapis.com \
+  secretmanager.googleapis.com \
+  sqladmin.googleapis.com
+```
+
+### 2. Configuración de Base de Datos
+```bash
+# Crear instancia PostgreSQL
+gcloud sql instances create maxillaris-db \
+  --database-version=POSTGRES_15 \
+  --tier=db-f1-micro \
+  --region=us-central1
+
+# Crear base de datos
+gcloud sql databases create maxillaris \
+  --instance=maxillaris-db
+
+# Configurar usuario y contraseña
+gcloud sql users set-password postgres \
+  --instance=maxillaris-db \
+  --password=[PASSWORD]
+```
+
+### 3. Configuración de Secretos y Variables
+```bash
+# Crear secretos
+echo -n "[DATABASE_URL]" | \
+  gcloud secrets create DATABASE_URL --data-file=-
+
+echo -n "[JWT_SECRET]" | \
+  gcloud secrets create JWT_SECRET --data-file=-
+
+# Asignar permisos
+gcloud secrets add-iam-policy-binding DATABASE_URL \
+  --member=serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com \
+  --role=roles/secretmanager.secretAccessor
+```
+
+### 4. Despliegue de la Aplicación
+```bash
+# Construir imagen
+gcloud builds submit --tag gcr.io/[PROJECT_ID]/maxillaris
+
+# Desplegar en Cloud Run
+gcloud run deploy maxillaris \
+  --image gcr.io/[PROJECT_ID]/maxillaris \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-secrets DATABASE_URL=DATABASE_URL:latest \
+  --set-secrets JWT_SECRET=JWT_SECRET:latest \
+  --set-env-vars "NODE_ENV=production"
+```
+
+### 5. Configuración de Red y Seguridad
+```bash
+# Configurar políticas de red
+gcloud run services update maxillaris \
+  --ingress=internal-and-cloud-load-balancing
+
+# Configurar SSL/TLS
+gcloud run domain-mappings create \
+  --service maxillaris \
+  --domain [YOUR_DOMAIN] \
+  --region us-central1
+```
+
+### 6. Monitoreo y Mantenimiento
+- Logs centralizados con Cloud Logging
+- Métricas de rendimiento en Cloud Monitoring
+- Alertas automáticas configuradas
+
 ## Decisiones Técnicas
 
-### 1. WebSocket
-- **¿Por qué?** Necesidad de actualizaciones en tiempo real
-- **Beneficios:**
-  - Comunicación bidireccional
-  - Menor latencia que polling
-  - Eficiente para múltiples clientes
-- **Implementación:** Servidor WS dedicado con autenticación JWT
+### Frontend
+- React + TypeScript para desarrollo robusto
+- TanStack Query para gestión de estado
+- WebSocket para actualizaciones en tiempo real
 
-### 2. gRPC
-- **¿Por qué?** Comunicación eficiente entre servicios
-- **Beneficios:**
-  - Protocol Buffers más eficientes que JSON
-  - Contratos estrictos con tipos
-  - Streaming bidireccional
-- **Uso:** Servicio de estadísticas y métricas
+### Backend
+- Express.js para API REST
+- gRPC para servicios internos
+- PostgreSQL con Drizzle ORM
 
-### 3. React + TypeScript
-- **¿Por qué?** Desarrollo frontend robusto y mantenible
-- **Beneficios:**
-  - Tipado estático
-  - Mejor tooling y autocompletado
-  - Detección temprana de errores
+### Infraestructura
+- Cloud Run para escalabilidad
+- Cloud SQL para base de datos
+- Secret Manager para credenciales
 
-### 4. PostgreSQL + Drizzle
-- **¿Por qué?** Base de datos relacional con ORM moderno
-- **Beneficios:**
-  - Integridad referencial
-  - Migraciones tipo-seguras
-  - Queries optimizadas
 
 ## Flujo de Trabajo
 
@@ -116,97 +186,20 @@ sequenceDiagram
     gRPC-->>-Cliente: Stream de estadísticas
 ```
 
-## Producción
+## Mejoras Futuras
 
-### 1. Preparación
-- Optimización de builds
-- Configuración de variables de entorno
-- Pruebas de integración
-
-### 2. Despliegue en Google Cloud
-#### Prerequisitos
-- Cuenta de Google Cloud
-- Google Cloud CLI instalado
-- Docker instalado localmente
-
-#### Pasos de Despliegue
-1. **Configuración inicial**
-```bash
-# Iniciar sesión en Google Cloud
-gcloud auth login
-
-# Configurar el proyecto
-gcloud config set project [PROJECT_ID]
-
-# Habilitar las APIs necesarias
-gcloud services enable \
-  cloudbuild.googleapis.com \
-  run.googleapis.com \
-  cloudscheduler.googleapis.com
-```
-
-2. **Configurar Base de Datos**
-```bash
-# Crear instancia de Cloud SQL (PostgreSQL)
-gcloud sql instances create maxillaris-db \
-  --database-version=POSTGRES_15 \
-  --tier=db-f1-micro \
-  --region=us-central1
-
-# Crear base de datos
-gcloud sql databases create maxillaris \
-  --instance=maxillaris-db
-```
-
-3. **Desplegar la Aplicación**
-```bash
-# Construir la imagen
-gcloud builds submit --tag gcr.io/[PROJECT_ID]/maxillaris
-
-# Desplegar en Cloud Run
-gcloud run deploy maxillaris \
-  --image gcr.io/[PROJECT_ID]/maxillaris \
-  --platform managed \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars "DATABASE_URL=[CONNECTION_STRING]"
-```
-
-4. **Configurar Dominio y SSL**
-- Configurar dominio personalizado en Cloud Run
-- SSL automático con Cloud Run
-
-### 3. Monitoreo
-- Logs centralizados con Cloud Logging
-- Métricas de rendimiento en Cloud Monitoring
-- Alertas automáticas configuradas
-
-## Posibles Mejoras
-
-### 1. Escalabilidad
+### Escalabilidad
 - Load balancing para WebSocket
 - Sharding de base de datos
 - Cache distribuido
 
-### 2. Seguridad
-- WAF (Web Application Firewall)
-- Rate limiting por IP
+### Seguridad
+- WAF implementación
+- Rate limiting
 - Auditoría detallada
 - Backup automatizado
 
-### 3. Optimizaciones
-- CDN para assets estáticos
-- Compresión de respuestas
-- Lazy loading de módulos
-- Service Workers para offline
-
-### 4. Funcionalidades
-- Sistema de notificaciones push
-- Integración con servicios externos
-- API pública documentada
-- Soporte multi-idioma
-
-### 5. DevOps
+### DevOps
 - Pipeline CI/CD
 - Tests automatizados
 - Despliegue blue-green

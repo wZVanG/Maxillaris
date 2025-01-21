@@ -5,10 +5,22 @@ import { db } from "@db";
 import { projects, tasks, projectCollaborators, users } from "@db/schema";
 import { eq, and, or, sql } from "drizzle-orm";
 import { requireAuth } from "./auth";
+import { getStatistics } from "./grpc/statistics-client";
 
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
   const wsServer = setupWebSocket(httpServer);
+
+  // Statistics endpoint
+  app.get("/api/statistics", requireAuth, async (req, res) => {
+    try {
+      const stats = await getStatistics(req.user!.id);
+      res.json(stats);
+    } catch (error) {
+      console.error('Error getting statistics:', error);
+      res.status(500).json({ error: 'Error getting statistics' });
+    }
+  });
 
   // Projects
   app.post("/api/projects", requireAuth, async (req, res) => {
@@ -252,65 +264,6 @@ export function registerRoutes(app: Express): Server {
     res.json(updatedTask);
   });
 
-  // Statistics
-  app.get("/api/statistics", requireAuth, async (req, res) => {
-    const userId = req.user!.id;
-
-    // Get projects where user is owner or collaborator
-    const [projectCount] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(projects)
-      .where(
-        or(
-          eq(projects.userId, userId),
-          sql`${projects.id} IN (
-            SELECT project_id 
-            FROM ${projectCollaborators} 
-            WHERE user_id = ${userId}
-          )`
-        )
-      );
-
-    // Get tasks from those projects
-    const [taskCount] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(tasks)
-      .innerJoin(projects, eq(tasks.projectId, projects.id))
-      .where(
-        or(
-          eq(projects.userId, userId),
-          sql`${projects.id} IN (
-            SELECT project_id 
-            FROM ${projectCollaborators} 
-            WHERE user_id = ${userId}
-          )`
-        )
-      );
-
-    const [completedTaskCount] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(tasks)
-      .innerJoin(projects, eq(tasks.projectId, projects.id))
-      .where(
-        and(
-          or(
-            eq(projects.userId, userId),
-            sql`${projects.id} IN (
-              SELECT project_id 
-              FROM ${projectCollaborators} 
-              WHERE user_id = ${userId}
-            )`
-          ),
-          eq(tasks.completed, true)
-        )
-      );
-
-    res.json({
-      projectCount: Number(projectCount.count),
-      taskCount: Number(taskCount.count),
-      completedTaskCount: Number(completedTaskCount.count),
-    });
-  });
 
   return httpServer;
 }
