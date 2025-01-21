@@ -4,17 +4,17 @@ services:
   app:
     build: .
     ports:
-      - "5000:5000"
+      - "8080:8080"
       - "50051:50051"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/maxillaris
+      - DATABASE_URL=postgresql://maxillaris_owner:npg_iKyRgLpzuN14@ep-odd-union-a54t86ip.us-east-2.aws.neon.tech/maxillaris?sslmode=require
       - PGUSER=postgres
       - PGPASSWORD=postgres
       - PGDATABASE=maxillaris
       - PGHOST=db
       - PGPORT=5432
       - NODE_ENV=production
-      - PORT=5000
+      - GRPC_PORT=50051
     depends_on:
       - db
     restart: always

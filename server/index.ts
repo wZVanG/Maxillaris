@@ -3,11 +3,14 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth } from "./auth";
 import { startStatisticsServer } from "./grpc/statistics-server";
+import { db } from "@db";
+import { eq, sql } from "drizzle-orm";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -39,18 +42,40 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Log environment variables (excluding sensitive data)
+  log("Starting server with configuration:");
+  log(`NODE_ENV: ${process.env.NODE_ENV}`);
+  log(`PORT: ${process.env.PORT}`);
+  log(`Database Host: ${process.env.PGHOST}`);
+  log(`Database Name: ${process.env.PGDATABASE}`);
+
+  // Verificar conexión a la base de datos
+  try {
+    // Realizar una consulta simple para verificar la conexión
+    const result = await db.execute(sql`SELECT 1`);
+    log("Database connection successful");
+  } catch (error) {
+    log(`Database connection failed: ${error}`);
+    if (process.env.NODE_ENV === "production") {
+      process.exit(1); // En producción, fallar rápido si no hay conexión a BD
+    }
+  }
+
   // Configurar autenticación antes de las rutas
   setupAuth(app);
   const server = registerRoutes(app);
 
-  // Iniciar servidor gRPC en un puerto diferente
-  const GRPC_PORT = parseInt(process.env.GRPC_PORT || "50051");
-  startStatisticsServer(GRPC_PORT);
+  // En producción, no iniciamos el servidor gRPC
+  if (process.env.NODE_ENV !== "production") {
+    const GRPC_PORT = parseInt(process.env.GRPC_PORT || "50051");
+    log(`Starting gRPC server on port ${GRPC_PORT}`);
+    startStatisticsServer(GRPC_PORT);
+  }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
+    log(`Error: ${status} - ${message}`);
     res.status(status).json({ message });
     throw err;
   });
@@ -63,8 +88,18 @@ app.use((req, res, next) => {
 
   // Usar el puerto proporcionado por Cloud Run o el valor por defecto
   const PORT = parseInt(process.env.PORT || "8080");
-  server.listen(PORT, "0.0.0.0", () => {
-    log(`HTTP server running on port ${PORT}`);
-    log(`Environment: ${app.get("env")}`);
-  });
-})();
+
+  try {
+    server.listen(PORT, "0.0.0.0", () => {
+      log(`Server is running on port ${PORT}`);
+      log(`Environment: ${app.get("env")}`);
+      log("Server started successfully");
+    });
+  } catch (error) {
+    log(`Failed to start server: ${error}`);
+    process.exit(1);
+  }
+})().catch((error) => {
+  log(`Unhandled error during startup: ${error}`);
+  process.exit(1);
+});

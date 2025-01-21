@@ -30,5 +30,9 @@ ENV NODE_ENV=production
 # El puerto se configurará automáticamente por Cloud Run
 EXPOSE 8080
 
+# Healthcheck para asegurar que la aplicación está funcionando
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-8080}/ || exit 1
+
 # Comando para iniciar la aplicación
 CMD ["node", "dist/index.js"]
