@@ -9,17 +9,10 @@ import { eq, and, sql } from 'drizzle-orm';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PROTO_PATH = path.join(__dirname, '../../proto/statistics.proto');
-
-const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
-  keepCase: true,
-  longs: String,
-  enums: String,
-  defaults: true,
-  oneofs: true,
-});
-
-const statisticsProto = grpc.loadPackageDefinition(packageDefinition).statistics;
+// En producción, no cargar el proto
+const PROTO_PATH = process.env.NODE_ENV === 'production'
+  ? null
+  : path.join(__dirname, '../../proto/statistics.proto');
 
 async function getStatistics(call: any, callback: any) {
   try {
@@ -57,6 +50,21 @@ async function getStatistics(call: any, callback: any) {
 }
 
 export function startStatisticsServer(port: number = 50051) {
+  // No iniciar el servidor gRPC en producción
+  if (process.env.NODE_ENV === 'production') {
+    console.log('gRPC server disabled in production');
+    return null;
+  }
+
+  const packageDefinition = protoLoader.loadSync(PROTO_PATH!, {
+    keepCase: true,
+    longs: String,
+    enums: String,
+    defaults: true,
+    oneofs: true,
+  });
+
+  const statisticsProto = grpc.loadPackageDefinition(packageDefinition).statistics;
   const server = new grpc.Server();
   server.addService((statisticsProto as any).StatisticsService.service, { getStatistics });
 
