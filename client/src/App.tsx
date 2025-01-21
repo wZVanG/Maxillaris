@@ -65,15 +65,6 @@ function ProtectedApp() {
   );
 }
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
-    </QueryClientProvider>
-  );
-}
-
 function Router() {
   const { user, isLoading } = useUser();
 
@@ -86,6 +77,15 @@ function Router() {
   }
 
   return user ? <ProtectedApp /> : <AuthPage />;
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Router />
+      <Toaster />
+    </QueryClientProvider>
+  );
 }
 
 export default App;

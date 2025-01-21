@@ -7,7 +7,6 @@ import { projects, tasks } from "@db/schema";
 import { eq } from "drizzle-orm";
 
 export function registerRoutes(app: Express): Server {
-  setupAuth(app);
   const httpServer = createServer(app);
   const wsServer = setupWebSocket(httpServer);
 
@@ -95,7 +94,7 @@ export function registerRoutes(app: Express): Server {
     const taskId = parseInt(req.params.taskId);
     const { completed } = req.body;
 
-    const [updatedTask] = await db
+    const [task] = await db
       .update(tasks)
       .set({ completed })
       .where(eq(tasks.id, taskId))
@@ -103,10 +102,10 @@ export function registerRoutes(app: Express): Server {
 
     wsServer.broadcast({
       type: "TASK_UPDATED",
-      payload: updatedTask,
+      payload: task,
     });
 
-    res.json(updatedTask);
+    res.json(task);
   });
 
   // Statistics
