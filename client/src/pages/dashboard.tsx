@@ -27,7 +27,7 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="p-6 animate-in fade-in-50">
-        <h1 className="text-3xl font-bold mb-6">Panel de Control</h1>
+        <h1 className="text-3xl font-bold mb-6">Panel Maxillaris</h1>
         <StatisticsSkeleton />
       </div>
     );
@@ -36,7 +36,7 @@ export default function Dashboard() {
   if (!stats) {
     return (
       <div className="p-6">
-        <h1 className="text-3xl font-bold mb-6">Panel de Control</h1>
+        <h1 className="text-3xl font-bold mb-6">Panel Maxillaris</h1>
         <p className="text-red-500">Error al cargar las estadísticas. Por favor, intente nuevamente.</p>
       </div>
     );
@@ -69,7 +69,7 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 animate-in fade-in-50">
-      <h1 className="text-3xl font-bold mb-6">Panel de Control</h1>
+      <h1 className="text-3xl font-bold mb-6">Panel Maxillaris</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {cards.map((card) => (
           <Card key={card.title} className="relative overflow-hidden">

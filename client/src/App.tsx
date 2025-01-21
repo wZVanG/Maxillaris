@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useState } from "react";
+import { Logo } from "@/components/logo";
 
 function NavBar() {
   const { user, logout } = useUser();
@@ -22,17 +23,15 @@ function NavBar() {
     <nav className="border-b">
       <div className="max-w-screen-xl mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center">
+            <Link href="/">
+              <a className="flex items-center">
+                <Logo className="mr-4" />
+              </a>
+            </Link>
+          </div>
 
-          {/* Desktop navigation */}
+          {/* Desktop menu */}
           <div className="hidden md:flex items-center space-x-4">
             <Link href="/">
               <Button variant="ghost" className="space-x-2">
@@ -59,6 +58,16 @@ function NavBar() {
               <span className="hidden md:inline">Cerrar Sesión</span>
             </Button>
           </div>
+
+          {/* Mobile menu button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
         </div>
 
         {/* Mobile navigation */}
