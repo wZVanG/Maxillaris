@@ -11,6 +11,14 @@ export function useWebSocket() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
+    ws.onopen = () => {
+      // Enviar el token de autenticación al conectar
+      const token = localStorage.getItem('token');
+      if (token) {
+        ws.send(JSON.stringify({ type: 'AUTH', token }));
+      }
+    };
+
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
