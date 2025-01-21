@@ -38,6 +38,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Setup auth before routes
   setupAuth(app);
   const server = registerRoutes(app);
 
