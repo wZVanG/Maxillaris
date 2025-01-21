@@ -17,6 +17,13 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const projectCollaborators = pgTable("project_collaborators", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  addedAt: timestamp("added_at").defaultNow().notNull(),
+});
+
 export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
@@ -30,8 +37,20 @@ export const tasks = pgTable("tasks", {
 
 export const projectsRelations = relations(projects, ({ many, one }) => ({
   tasks: many(tasks),
+  collaborators: many(projectCollaborators),
   user: one(users, {
     fields: [projects.userId],
+    references: [users.id],
+  }),
+}));
+
+export const projectCollaboratorsRelations = relations(projectCollaborators, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectCollaborators.projectId],
+    references: [projects.id],
+  }),
+  user: one(users, {
+    fields: [projectCollaborators.userId],
     references: [users.id],
   }),
 }));
@@ -56,8 +75,13 @@ export const selectProjectSchema = createSelectSchema(projects);
 export const insertTaskSchema = createInsertSchema(tasks);
 export const selectTaskSchema = createSelectSchema(tasks);
 
+export const insertCollaboratorSchema = createInsertSchema(projectCollaborators);
+export const selectCollaboratorSchema = createSelectSchema(projectCollaborators);
+
 export type User = typeof users.$inferSelect;
 export type Project = typeof projects.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
+export type ProjectCollaborator = typeof projectCollaborators.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
 export type NewTask = typeof tasks.$inferInsert;
+export type NewCollaborator = typeof projectCollaborators.$inferInsert;

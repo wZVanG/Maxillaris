@@ -1,13 +1,22 @@
 import { Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import type { Project, Task } from "@db/schema";
+import type { Project, Task, ProjectCollaborator } from "@db/schema";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.REPL_ID || "your-secret-key";
 
 interface WebSocketMessage {
-  type: "PROJECT_UPDATED" | "TASK_UPDATED" | "PROJECT_CREATED" | "TASK_CREATED" | "AUTH";
-  payload?: Project | Task;
+  type: "PROJECT_UPDATED" | "TASK_UPDATED" | "PROJECT_CREATED" | "TASK_CREATED" | "AUTH" | "COLLABORATOR_ADDED" | "COLLABORATOR_REMOVED";
+  payload?: Project | Task | {
+    projectId: number;
+    collaborator?: ProjectCollaborator & {
+      user: {
+        id: number;
+        username: string;
+      };
+    };
+    userId?: number;
+  };
   token?: string;
 }
 
