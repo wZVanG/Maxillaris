@@ -22,11 +22,11 @@ export default {
           foreground: "hsl(var(--popover-foreground))",
         },
         primary: {
-          DEFAULT: "hsl(var(--primary))",
+          DEFAULT: "hsl(225 35% 56%)", // El azul de la marca #637bb9
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
+          DEFAULT: "hsl(334 60% 74%)", // El rosa de la marca #e890ba
           foreground: "hsl(var(--secondary-foreground))",
         },
         muted: {
@@ -45,11 +45,11 @@ export default {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         chart: {
-          "1": "hsl(var(--chart-1))",
-          "2": "hsl(var(--chart-2))",
-          "3": "hsl(var(--chart-3))",
-          "4": "hsl(var(--chart-4))",
-          "5": "hsl(var(--chart-5))",
+          "1": "hsl(225 35% 56%)", // Azul principal
+          "2": "hsl(334 60% 74%)", // Rosa secundario
+          "3": "hsl(225 35% 76%)", // Azul más claro
+          "4": "hsl(334 60% 84%)", // Rosa más claro
+          "5": "hsl(225 35% 36%)", // Azul más oscuro
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -64,20 +64,12 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
