@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+      - "50051:50051"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/maxillaris
+      - PGUSER=postgres
+      - PGPASSWORD=postgres
+      - PGDATABASE=maxillaris
+      - PGHOST=db
+      - PGPORT=5432
+      - NODE_ENV=production
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=maxillaris
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
