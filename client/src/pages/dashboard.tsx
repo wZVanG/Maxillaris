@@ -1,16 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { getStatistics } from '@/lib/grpc-client';
+import { useUser } from '@/hooks/use-user';
 
 interface Statistics {
-  projectCount: number;
-  taskCount: number;
-  completedTaskCount: number;
+  project_count: number;
+  task_count: number;
+  completed_task_count: number;
 }
 
 export default function Dashboard() {
+  const { user } = useUser();
+
   const { data: stats, isLoading } = useQuery<Statistics>({
-    queryKey: ['/api/statistics'],
+    queryKey: ['statistics', user?.id],
+    queryFn: () => {
+      if (!user?.id) throw new Error('User not authenticated');
+      return getStatistics(user.id);
+    },
+    enabled: !!user?.id,
   });
 
   if (isLoading) {
@@ -28,20 +37,20 @@ export default function Dashboard() {
   const cards = [
     {
       title: 'Total Projects',
-      value: stats.projectCount,
+      value: stats.project_count,
     },
     {
       title: 'Total Tasks',
-      value: stats.taskCount,
+      value: stats.task_count,
     },
     {
       title: 'Completed Tasks',
-      value: stats.completedTaskCount,
+      value: stats.completed_task_count,
     },
     {
       title: 'Completion Rate',
-      value: stats.taskCount ? 
-        `${Math.round((stats.completedTaskCount / stats.taskCount) * 100)}%` : 
+      value: stats.task_count ? 
+        `${Math.round((stats.completed_task_count / stats.task_count) * 100)}%` : 
         '0%',
     },
   ];

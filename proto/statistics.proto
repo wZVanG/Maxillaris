@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package statistics;
+
+service StatisticsService {
+  rpc GetStatistics (StatisticsRequest) returns (StatisticsResponse) {}
+}
+
+message StatisticsRequest {
+  int32 user_id = 1;
+}
+
+message StatisticsResponse {
+  int32 project_count = 1;
+  int32 task_count = 2;
+  int32 completed_task_count = 3;
+}
