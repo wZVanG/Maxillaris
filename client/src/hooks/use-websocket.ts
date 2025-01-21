@@ -8,49 +8,69 @@ export function useWebSocket() {
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      return; // Ya hay una conexión activa
+    }
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
+    const host = window.location.host;
 
-    ws.onopen = () => {
-      // Enviar el token de autenticación al conectar
-      const token = localStorage.getItem('token');
-      if (token) {
-        ws.send(JSON.stringify({ type: 'AUTH', token }));
-      }
-    };
+    try {
+      const ws = new WebSocket(`${protocol}//${host}/ws`);
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+      ws.onopen = () => {
+        console.log('WebSocket connected');
+        const token = localStorage.getItem('token');
+        if (token) {
+          ws.send(JSON.stringify({ type: 'AUTH', token }));
+        }
+      };
 
-      switch (data.type) {
-        case 'PROJECT_CREATED':
-          toast({
-            title: 'New Project Created',
-            description: `Project "${data.payload.title}" has been created`,
-          });
-          break;
-        case 'TASK_CREATED':
-          toast({
-            title: 'New Task Added',
-            description: `Task "${data.payload.title}" has been added`,
-          });
-          break;
-        case 'TASK_UPDATED':
-          toast({
-            title: 'Task Updated',
-            description: `Task "${data.payload.title}" has been updated`,
-          });
-          break;
-      }
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
 
-      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-    };
+          switch (data.type) {
+            case 'PROJECT_CREATED':
+              toast({
+                title: 'New Project Created',
+                description: `Project "${data.payload.title}" has been created`,
+              });
+              break;
+            case 'TASK_CREATED':
+              toast({
+                title: 'New Task Added',
+                description: `Task "${data.payload.title}" has been added`,
+              });
+              break;
+            case 'TASK_UPDATED':
+              toast({
+                title: 'Task Updated',
+                description: `Task "${data.payload.title}" has been updated`,
+              });
+              break;
+          }
 
-    wsRef.current = ws;
+          queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+        } catch (error) {
+          console.error('Error processing WebSocket message:', error);
+        }
+      };
 
-    return () => {
-      ws.close();
-    };
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+      wsRef.current = ws;
+
+      return () => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close();
+        }
+      };
+    } catch (error) {
+      console.error('Error creating WebSocket connection:', error);
+    }
   }, [queryClient, toast]);
 
   return wsRef.current;
