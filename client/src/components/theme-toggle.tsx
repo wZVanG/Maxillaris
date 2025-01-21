@@ -1,3 +1,22 @@
+/**
+ * ThemeToggle Component
+ * 
+ * Este componente proporciona una interfaz para cambiar el tema de la aplicación
+ * entre claro, oscuro y sistema. Utiliza el hook useTheme para manejar los cambios
+ * y shadcn/ui para los elementos de la interfaz.
+ * 
+ * Features:
+ * - Menú desplegable con 3 opciones: Claro, Oscuro, Sistema
+ * - Icono dinámico que refleja el tema actual
+ * - Tooltip para mejorar la accesibilidad
+ * - Animaciones suaves en los cambios de tema
+ * 
+ * Ejemplo de uso:
+ * ```tsx
+ * <ThemeToggle />
+ * ```
+ */
+
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
