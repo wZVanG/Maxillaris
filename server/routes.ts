@@ -1,21 +1,14 @@
-import type { Express, Request, Response, NextFunction } from "express";
+import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupWebSocket } from "./websocket";
 import { db } from "@db";
 import { projects, tasks } from "@db/schema";
 import { eq, and, sql } from "drizzle-orm";
+import { requireAuth } from "./auth";
 
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
   const wsServer = setupWebSocket(httpServer);
-
-  // Middleware to check authentication
-  const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-    next();
-  };
 
   // Projects
   app.post("/api/projects", requireAuth, async (req, res) => {

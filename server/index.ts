@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { setupAuth } from "./auth";
+//import { setupAuth } from "./auth"; //removed import
 
 const app = express();
 app.use(express.json());
@@ -38,8 +38,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Setup auth before routes
-  setupAuth(app);
+  // Setup auth before routes (removed)
   const server = registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
