@@ -3,7 +3,7 @@ FROM node:18-alpine as builder
 
 WORKDIR /app
 
-# Instalar dependencias
+# Instalar todas las dependencias, incluyendo devDependencies
 COPY package*.json ./
 RUN npm ci
 
@@ -21,13 +21,14 @@ WORKDIR /app
 # Copiar archivos necesarios del stage de build
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/proto ./proto
 
-# Instalar solo dependencias de producción
-RUN npm ci --production
+# Variables de entorno por defecto
+ENV NODE_ENV=production
 
-# Exponer puerto
-EXPOSE 5000
+# El puerto se configurará automáticamente por Cloud Run
+EXPOSE 8080
 
 # Comando para iniciar la aplicación
-CMD ["npm", "start"]
+CMD ["node", "dist/index.js"]

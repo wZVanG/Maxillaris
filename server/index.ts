@@ -43,8 +43,9 @@ app.use((req, res, next) => {
   setupAuth(app);
   const server = registerRoutes(app);
 
-  // Iniciar servidor gRPC
-  startStatisticsServer(50051);
+  // Iniciar servidor gRPC en un puerto diferente
+  const GRPC_PORT = parseInt(process.env.GRPC_PORT || "50051");
+  startStatisticsServer(GRPC_PORT);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -60,8 +61,10 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  const PORT = 5000;
+  // Usar el puerto proporcionado por Cloud Run o el valor por defecto
+  const PORT = parseInt(process.env.PORT || "8080");
   server.listen(PORT, "0.0.0.0", () => {
     log(`HTTP server running on port ${PORT}`);
+    log(`Environment: ${app.get("env")}`);
   });
 })();
