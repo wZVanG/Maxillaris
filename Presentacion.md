@@ -96,7 +96,7 @@ sequenceDiagram
     API-->>-Cliente: JWT Token
 ```
 
-### 2. Actualización en Tiempo Real
+### 2. Gestión de Proyectos y Tareas en Tiempo Real
 ```mermaid
 sequenceDiagram
     Cliente->>+WebSocket: Conectar (con JWT)
@@ -107,7 +107,7 @@ sequenceDiagram
     WebSocket->>Cliente: Notificar cambio
 ```
 
-### 3. Estadísticas
+### 3. Estadísticas y Métricas
 ```mermaid
 sequenceDiagram
     Cliente->>+gRPC: Solicitar estadísticas
@@ -123,15 +123,63 @@ sequenceDiagram
 - Configuración de variables de entorno
 - Pruebas de integración
 
-### 2. Despliegue
-- Construcción de imágenes Docker
-- Configuración de red y volúmenes
-- Verificación de servicios
+### 2. Despliegue en Google Cloud
+#### Prerequisitos
+- Cuenta de Google Cloud
+- Google Cloud CLI instalado
+- Docker instalado localmente
+
+#### Pasos de Despliegue
+1. **Configuración inicial**
+```bash
+# Iniciar sesión en Google Cloud
+gcloud auth login
+
+# Configurar el proyecto
+gcloud config set project [PROJECT_ID]
+
+# Habilitar las APIs necesarias
+gcloud services enable \
+  cloudbuild.googleapis.com \
+  run.googleapis.com \
+  cloudscheduler.googleapis.com
+```
+
+2. **Configurar Base de Datos**
+```bash
+# Crear instancia de Cloud SQL (PostgreSQL)
+gcloud sql instances create maxillaris-db \
+  --database-version=POSTGRES_15 \
+  --tier=db-f1-micro \
+  --region=us-central1
+
+# Crear base de datos
+gcloud sql databases create maxillaris \
+  --instance=maxillaris-db
+```
+
+3. **Desplegar la Aplicación**
+```bash
+# Construir la imagen
+gcloud builds submit --tag gcr.io/[PROJECT_ID]/maxillaris
+
+# Desplegar en Cloud Run
+gcloud run deploy maxillaris \
+  --image gcr.io/[PROJECT_ID]/maxillaris \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars "DATABASE_URL=[CONNECTION_STRING]"
+```
+
+4. **Configurar Dominio y SSL**
+- Configurar dominio personalizado en Cloud Run
+- SSL automático con Cloud Run
 
 ### 3. Monitoreo
-- Logs centralizados
-- Métricas de rendimiento
-- Alertas automáticas
+- Logs centralizados con Cloud Logging
+- Métricas de rendimiento en Cloud Monitoring
+- Alertas automáticas configuradas
 
 ## Posibles Mejoras
 
