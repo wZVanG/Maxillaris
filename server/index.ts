@@ -10,7 +10,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -41,11 +40,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// Healthcheck endpoint for Cloud Run
+app.get("/_health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 (async () => {
   // Log environment variables (excluding sensitive data)
   log("Starting server with configuration:");
   log(`NODE_ENV: ${process.env.NODE_ENV}`);
-  log(`PORT: ${process.env.PORT}`);
+  log(`PORT: ${process.env.PORT || 8080}`);
   log(`Database Host: ${process.env.PGHOST}`);
   log(`Database Name: ${process.env.PGDATABASE}`);
 
