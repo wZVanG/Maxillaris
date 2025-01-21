@@ -4,7 +4,7 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { db } from '@db';
 import { projects, tasks } from '@db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,17 +26,17 @@ async function getStatistics(call: any, callback: any) {
     const userId = call.request.user_id;
 
     const [projectCount] = await db
-      .select({ count: db.fn.count() })
+      .select({ count: sql<number>`count(*)` })
       .from(projects)
       .where(eq(projects.userId, userId));
 
     const [taskCount] = await db
-      .select({ count: db.fn.count() })
+      .select({ count: sql<number>`count(*)` })
       .from(tasks)
       .where(eq(tasks.userId, userId));
 
     const [completedTaskCount] = await db
-      .select({ count: db.fn.count() })
+      .select({ count: sql<number>`count(*)` })
       .from(tasks)
       .where(
         and(
@@ -51,6 +51,7 @@ async function getStatistics(call: any, callback: any) {
       completed_task_count: Number(completedTaskCount.count),
     });
   } catch (error) {
+    console.error('gRPC statistics error:', error);
     callback(error);
   }
 }
@@ -58,7 +59,7 @@ async function getStatistics(call: any, callback: any) {
 export function startStatisticsServer(port: number = 50051) {
   const server = new grpc.Server();
   server.addService((statisticsProto as any).StatisticsService.service, { getStatistics });
-  
+
   server.bindAsync(
     `0.0.0.0:${port}`,
     grpc.ServerCredentials.createInsecure(),
