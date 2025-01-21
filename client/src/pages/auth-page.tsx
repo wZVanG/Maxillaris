@@ -23,7 +23,7 @@ export default function AuthPage() {
     } catch (error) {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Authentication failed',
+        description: error instanceof Error ? error.message : 'Error de autenticación',
         variant: 'destructive',
       });
     }
@@ -33,12 +33,12 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>{isLogin ? 'Login' : 'Register'}</CardTitle>
+          <CardTitle>{isLogin ? 'Iniciar Sesión' : 'Registrarse'}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="username">Username</label>
+              <label htmlFor="username">Nombre de Usuario</label>
               <Input
                 id="username"
                 type="text"
@@ -48,7 +48,7 @@ export default function AuthPage() {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">Contraseña</label>
               <Input
                 id="password"
                 type="password"
@@ -58,7 +58,7 @@ export default function AuthPage() {
               />
             </div>
             <Button type="submit" className="w-full">
-              {isLogin ? 'Login' : 'Register'}
+              {isLogin ? 'Iniciar Sesión' : 'Registrarse'}
             </Button>
             <Button
               type="button"
@@ -66,7 +66,7 @@ export default function AuthPage() {
               className="w-full"
               onClick={() => setIsLogin(!isLogin)}
             >
-              {isLogin ? 'Need an account?' : 'Already have an account?'}
+              {isLogin ? '¿Necesitas una cuenta?' : '¿Ya tienes una cuenta?'}
             </Button>
           </form>
         </CardContent>

@@ -8,11 +8,11 @@ import Dashboard from "@/pages/dashboard";
 import Projects from "@/pages/projects";
 import { useUser } from "@/hooks/use-user";
 import { useWebSocket } from "@/hooks/use-websocket";
-import { Loader2, LayoutDashboard, FolderKanban, LogOut } from "lucide-react";
+import { Loader2, LayoutDashboard, FolderKanban, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 function NavBar() {
-  const { logout } = useUser();
+  const { user, logout } = useUser();
 
   return (
     <nav className="border-b">
@@ -22,20 +22,26 @@ function NavBar() {
             <Link href="/">
               <Button variant="ghost" className="space-x-2">
                 <LayoutDashboard className="h-4 w-4" />
-                <span>Dashboard</span>
+                <span>Panel</span>
               </Button>
             </Link>
             <Link href="/projects">
               <Button variant="ghost" className="space-x-2">
                 <FolderKanban className="h-4 w-4" />
-                <span>Projects</span>
+                <span>Proyectos</span>
               </Button>
             </Link>
           </div>
-          <Button variant="ghost" onClick={() => logout()} className="space-x-2">
-            <LogOut className="h-4 w-4" />
-            <span>Logout</span>
-          </Button>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-muted-foreground flex items-center">
+              <User className="h-4 w-4 mr-2" />
+              {user?.username}
+            </span>
+            <Button variant="ghost" onClick={() => logout()} className="space-x-2">
+              <LogOut className="h-4 w-4" />
+              <span>Cerrar Sesión</span>
+            </Button>
+          </div>
         </div>
       </div>
     </nav>
