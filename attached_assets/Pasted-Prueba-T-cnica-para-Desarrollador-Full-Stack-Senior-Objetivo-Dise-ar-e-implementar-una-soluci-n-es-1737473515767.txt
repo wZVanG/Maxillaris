@@ -1,0 +1,109 @@
+Prueba Técnica para Desarrollador Full Stack Senior
+Objetivo
+Diseñar e implementar una solución escalable y modular que consuma diferentes protocolos de comunicación (REST, WebSocket y gRPC). La prueba evaluará la capacidad del candidato para integrar tecnologías modernas, estructurar el sistema con buenas prácticas de arquitectura, y desplegar la solución en un entorno de producción.
+
+Duración
+8-10 horas (puede ser flexible, permitiendo varias sesiones).
+
+Descripción del Sistema
+Un sistema de gestión de proyectos colaborativos donde los usuarios pueden:
+Crear y gestionar proyectos.
+Añadir tareas a los proyectos.
+Recibir notificaciones en tiempo real cuando se actualizan proyectos o tareas (via WebSocket).
+Consultar estadísticas generales del sistema (por ejemplo, número de proyectos y tareas, etc.) a través de un servicio gRPC.
+
+Instrucciones
+Requisitos Técnicos
+Backend (NestJS o Microservicios)
+Diseño Modular o Basado en Microservicios:
+Crear servicios separados para manejar:
+Gestión de proyectos y tareas: REST API.
+Notificaciones en tiempo real: WebSocket (usando Socket.IO o protocolo similar).
+Estadísticas del sistema: gRPC.
+Cada servicio debe ser independiente y tener su propia lógica.
+Servicios requeridos:
+REST API:
+POST /projects: Crear un proyecto.
+POST /projects/:projectId/tasks: Añadir una tarea a un proyecto.
+GET /projects: Listar todos los proyectos con sus tareas asociadas.
+WebSocket:
+Enviar notificaciones en tiempo real a los usuarios cuando:
+Se crea o actualiza un proyecto.
+Se crea o actualiza una tarea.
+gRPC:
+Implementar un endpoint para consultar estadísticas generales:
+Número total de proyectos.
+Número total de tareas.
+Base de Datos:
+Usar una base de datos relacional (PostgreSQL, MySQL) o NoSQL (MongoDB, Redis) según se considere más adecuado.
+Diseñar una estructura clara y eficiente para las entidades Proyectos y Tareas.
+Autenticación y Autorización:
+Usar JWT para proteger los endpoints de la API REST y asegurar que solo usuarios autenticados puedan realizar acciones.
+Pruebas Unitarias:
+Agregar pruebas unitarias y de integración para los endpoints principales.
+
+Frontend (React o Angular)
+Crear una interfaz de usuario que permita:
+Listar proyectos y tareas desde la API REST.
+Crear nuevos proyectos y tareas mediante formularios.
+Mostrar notificaciones en tiempo real (consumiendo WebSocket).
+Un dashboard con estadísticas generales (consultadas a través de gRPC).
+WebSocket:
+Conectar a WebSocket para recibir actualizaciones en tiempo real y mostrarlas en un sistema de notificaciones amigable.
+Gestión del Estado:
+Usar herramientas modernas como Redux, Context API (React) o NgRx (Angular) para manejar el estado global.
+Estilos:
+Usar una librería de UI como Material-UI, Chakra UI (React) o Angular Material.
+
+Producción y Despliegue
+Dockerización:
+Configurar todos los servicios (frontend, backend y base de datos) en contenedores Docker.
+Proveer un archivo docker-compose.yml para facilitar la ejecución del sistema completo.
+Despliegue en Producción:
+Publicar la solución en un dominio público usando servicios como:
+AWS, Google Cloud, Heroku, Vercel, o Netlify.
+Backend y WebSocket deben estar accesibles desde el mismo dominio o dominios relacionados.
+
+Entregables
+Código Fuente:
+Subir el proyecto a un repositorio Git.
+Estructura clara, modular y documentación en el código.
+Archivo README.md que incluya:
+Instrucciones para ejecutar el proyecto en local y en producción.
+Decisiones técnicas y razones detrás de ellas.
+Posibles mejoras futuras.
+Presentación en PPT:
+Exponer los siguientes puntos:
+Arquitectura del sistema:
+Diagrama de alto nivel con servicios, protocolos y base de datos.
+Decisiones técnicas:
+Por qué se eligieron WebSocket, gRPC y otras herramientas.
+Flujo de trabajo:
+Cómo los diferentes componentes interactúan entre sí.
+Producción:
+Pasos realizados para desplegar el proyecto.
+Posibles mejoras:
+Escalabilidad, seguridad, y optimizaciones.
+Aplicación en Producción:
+Enlace a la solución desplegada con frontend, backend y WebSocket funcionando.
+Demostración en Vivo:
+Explicar y demostrar:
+CRUD de proyectos/tareas.
+Notificaciones en tiempo real.
+Consumo de estadísticas desde el servicio gRPC.
+
+Criterios de Evaluación
+Complejidad Técnica:
+Implementación adecuada de REST, WebSocket y gRPC.
+Diseño modular o basado en microservicios.
+Calidad del Código:
+Buenas prácticas (nombres claros, separación de responsabilidades, etc.).
+Código bien documentado.
+Experiencia de Usuario:
+Interfaz intuitiva y responsiva.
+Escalabilidad y Mantenimiento:
+Capacidad de la arquitectura para soportar nuevas funcionalidades.
+Despliegue:
+Uso adecuado de Docker y servicios en la nube.
+Presentación:
+Claridad al explicar decisiones técnicas y arquitectura.
