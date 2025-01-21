@@ -1,9 +1,5 @@
-import passport from "passport";
-import { IVerifyOptions, Strategy as LocalStrategy } from "passport-local";
 import { type Express } from "express";
 import { type Request, Response, NextFunction } from "express";
-import session from "express-session";
-import createMemoryStore from "memorystore";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { users } from "@db/schema";
@@ -62,7 +58,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
 declare global {
   namespace Express {
-    interface User extends SelectUser {}
+    interface User extends typeof users.$inferSelect {}
   }
 }
 
@@ -70,10 +66,16 @@ export function setupAuth(app: Express) {
   app.post("/api/register", async (req, res) => {
     try {
       const { username, password } = req.body;
-      if (!username || !password) {
-        return res.status(400).json({ message: "Username and password are required" });
+
+      // Validación de campos
+      if (!username || typeof username !== 'string') {
+        return res.status(400).json({ message: "Username is required and must be a string" });
+      }
+      if (!password || typeof password !== 'string') {
+        return res.status(400).json({ message: "Password is required and must be a string" });
       }
 
+      // Verificar si el usuario ya existe
       const [existingUser] = await db
         .select()
         .from(users)
@@ -84,6 +86,7 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
+      // Crear nuevo usuario
       const hashedPassword = await crypto.hash(password);
       const [newUser] = await db
         .insert(users)
@@ -93,23 +96,29 @@ export function setupAuth(app: Express) {
         })
         .returning();
 
+      // Generar token y enviar respuesta
       const token = jwt.sign({ userId: newUser.id }, JWT_SECRET);
       return res.json({
         message: "Registration successful",
         token,
-        user: { id: newUser.id, username: newUser.username },
+        user: { id: newUser.id, username: newUser.username }
       });
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Server error" });
+      console.error('Registration error:', error);
+      return res.status(500).json({ message: "An error occurred during registration" });
     }
   });
 
   app.post("/api/login", async (req, res) => {
     try {
       const { username, password } = req.body;
-      if (!username || !password) {
-        return res.status(400).json({ message: "Username and password are required" });
+
+      // Validación de campos
+      if (!username || typeof username !== 'string') {
+        return res.status(400).json({ message: "Username is required and must be a string" });
+      }
+      if (!password || typeof password !== 'string') {
+        return res.status(400).json({ message: "Password is required and must be a string" });
       }
 
       const [user] = await db
@@ -131,11 +140,11 @@ export function setupAuth(app: Express) {
       return res.json({
         message: "Login successful",
         token,
-        user: { id: user.id, username: user.username },
+        user: { id: user.id, username: user.username }
       });
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Server error" });
+      console.error('Login error:', error);
+      return res.status(500).json({ message: "An error occurred during login" });
     }
   });
 
