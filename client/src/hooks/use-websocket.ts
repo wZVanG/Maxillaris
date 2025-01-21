@@ -33,34 +33,46 @@ export function useWebSocket() {
           switch (data.type) {
             case 'PROJECT_CREATED':
               toast({
-                title: 'New Project Created',
-                description: `Project "${data.payload.title}" has been created`,
+                title: '¡Nuevo Proyecto!',
+                description: `Se ha creado el proyecto "${data.payload.title}"`,
+                variant: 'default',
+                duration: 5000,
               });
               break;
             case 'TASK_CREATED':
               toast({
-                title: 'New Task Added',
-                description: `Task "${data.payload.title}" has been added`,
+                title: '¡Nueva Tarea!',
+                description: `Se ha añadido la tarea "${data.payload.title}"`,
+                variant: 'default',
+                duration: 5000,
               });
               break;
             case 'TASK_UPDATED':
+              const status = data.payload.completed ? 'completada' : 'pendiente';
               toast({
-                title: 'Task Updated',
-                description: `Task "${data.payload.title}" has been updated`,
+                title: 'Tarea Actualizada',
+                description: `La tarea "${data.payload.title}" ha sido marcada como ${status}`,
+                variant: 'default',
+                duration: 5000,
               });
               break;
           }
 
-          // Refetch projects and statistics after any update
+          // Refrescar los datos después de cualquier actualización
           queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-          queryClient.invalidateQueries({ queryKey: ['statistics'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/statistics'] });
         } catch (error) {
-          console.error('Error processing WebSocket message:', error);
+          console.error('Error procesando mensaje WebSocket:', error);
         }
       };
 
       ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        console.error('Error de WebSocket:', error);
+        toast({
+          title: 'Error de Conexión',
+          description: 'No se pudo establecer la conexión en tiempo real',
+          variant: 'destructive',
+        });
       };
 
       wsRef.current = ws;
@@ -71,7 +83,12 @@ export function useWebSocket() {
         }
       };
     } catch (error) {
-      console.error('Error creating WebSocket connection:', error);
+      console.error('Error creando conexión WebSocket:', error);
+      toast({
+        title: 'Error de Conexión',
+        description: 'No se pudo establecer la conexión en tiempo real',
+        variant: 'destructive',
+      });
     }
   }, [queryClient, toast]);
 
