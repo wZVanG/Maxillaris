@@ -13,10 +13,10 @@ export function useWebSocket() {
     }
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
 
     try {
-      const ws = new WebSocket(`${protocol}//${host}/ws`);
+      const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
         console.log('WebSocket connected');
@@ -51,7 +51,9 @@ export function useWebSocket() {
               break;
           }
 
+          // Refetch projects and statistics after any update
           queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+          queryClient.invalidateQueries({ queryKey: ['statistics'] });
         } catch (error) {
           console.error('Error processing WebSocket message:', error);
         }
